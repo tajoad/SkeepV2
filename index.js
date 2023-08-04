@@ -5,10 +5,11 @@ const bodyParser = require("body-parser");
 
 //Create connection
 const db = mysql.createConnection({
-  host: "eu-cdbr-west-03.cleardb.net",
-  user: "bb0f8a9babe351",
-  password: "38d854ba",
-  database: "heroku_95e4d9955799de6",
+  host: "db4free.net",
+  port: "3306",
+  user: "skipdb2023",
+  password: "skipdb2023",
+  database: "skipdb",
 });
 
 const app = express();
@@ -197,7 +198,6 @@ app.post("/signin", (request, response) => {
     response.end();
   };
 
-
   //login authentication
   let userData = request.body;
   const bcrypt = require("bcrypt");
@@ -238,7 +238,7 @@ app.post("/signin", (request, response) => {
                 throw err;
               } else {
                 console.log(result[0]);
-                if (result[0] === undefined) {                 
+                if (result[0] === undefined) {
                   getResponse(null, welcomeString, false);
                 } else {
                   getResponse(null, welcomeString, true);
