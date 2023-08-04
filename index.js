@@ -1,15 +1,15 @@
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
 //Create connection
-const db = mysql.createConnection({
-  host: "db4free.net",
+const db = mysql.createPool({
+  host: "sql.freedb.tech",
   port: "3306",
-  user: "skipdb2023",
-  password: "skipdb2023",
-  database: "skipdb",
+  user: "freedb_skeepdb",
+  password: "PpgcbDV?pt4X2T!",
+  database: "freedb_skeepdb",
 });
 
 const app = express();
