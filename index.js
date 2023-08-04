@@ -118,13 +118,7 @@ app.post("/signup", (req, res) => {
 
   const passwordHash = bcrypt.hashSync(userData.password, 10);
 
-  const params = [
-    userData.email,
-    userData.DateOfBirth,
-    userData.Gender,
-    passwordHash,
-    passwordHash,
-  ];
+  const params = [userData.email, passwordHash, passwordHash];
 
   // Authenticate Registration
 
@@ -147,7 +141,7 @@ app.post("/signup", (req, res) => {
         } else {
           //insert into table and send response
 
-          const sql = `insert into signup (email, DateOfBirth, Gender, password, confirmPassword) VALUES("${params[0]}", "${params[1]}", "${params[2]}", "${params[3]}", "${params[4]}")`;
+          const sql = `insert into signup (email, password, confirmPassword) VALUES("${params[0]}", "${params[1]}", "${params[2]}")`;
           let query = db.query(sql, userData, (err, result) => {
             if (err) {
               throw err;
