@@ -5,11 +5,11 @@ const bodyParser = require("body-parser");
 
 //Create connection
 const db = mysql.createPool({
-  host: "sql.freedb.tech",
+  host: "db4free.net",
   port: "3306",
-  user: "freedb_skeepdb",
-  password: "PpgcbDV?pt4X2T!",
-  database: "freedb_skeepdb",
+  user: "skipdb",
+  password: "skipdb2023",
+  database: "skipdb",
 });
 
 const app = express();
@@ -104,7 +104,6 @@ app.post("/signup", (req, res) => {
 
     console.log(sendData);
 
-    res.setHeader("Content-Type", "application/json");
     res.send(sendData);
     res.end();
   };
@@ -284,10 +283,91 @@ app.post("/answers", (req, res) => {
   userData.forEach((element) => {
     const params = [element.value, element.id, element.userid];
 
-    const sql = `insert into answers      (answer, Question_id, person_id)
-                                        VALUES("${params[0]}", "${params[1]}", "${params[2]}")`;
+    query = `
+              SELECT distinct person_id as count FROM answers
+              WHERE person_id = "${params[2]}" and Question_id = "${params[1]}"
+              `;
 
-    let query = db.query(sql, userData, (err, result) => {
+    db.query(query, (error, result) => {
+      if (error) {
+        throw err;
+      } else {
+        console.log(result[0]);
+        if (result[0] === undefined) {
+          const sql = `insert into answers      (answer, Question_id, person_id)
+                  VALUES("${params[0]}", "${params[1]}", "${params[2]}")`;
+
+          let query = db.query(sql, userData, (err, result) => {
+            if (err) {
+              throw err;
+              //getRegResponse(err, true);
+            }
+          });
+        } else {
+          const sql = `update answers  
+                       set answer = "${params[0]}"
+                       where Question_id=  "${params[1]}"
+                       and   person_id = "${params[2]}" `;
+          let query = db.query(sql, userData, (err, result) => {
+            if (err) {
+              throw err;
+              //getRegResponse(err, true);
+            }
+          });
+        }
+      }
+    });
+  });
+  getRegResponse(false, "Submitted Successfully");
+});
+
+app.post("/extra", (req, res) => {
+  // callback function
+  const getRegResponse = (err, resp) => {
+    let getRes;
+    let status;
+
+    if (err) {
+      getRes = err.message;
+      status = 0;
+    } else {
+      getRes = resp;
+      status = 1;
+    }
+
+    const sendData = {
+      responseMsg: getRes,
+      responseCode: status,
+    };
+
+    res.statusCode = 200;
+
+    res.send(sendData);
+    res.end();
+  };
+
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", true); // you
+  res.setHeader("Content-Type", "application/json");
+  let userData = req.body;
+
+  userData.forEach((element) => {
+    const params = [element.personid, element.question, element.answer];
+
+    const quesSQL = `insert into questions      (Personid, Question, groupNum)
+                                        VALUES("${params[0]}", "${params[1]}", "5")`;
+
+    let query = db.query(quesSQL, userData, (err, result) => {
+      if (err) {
+        throw err;
+      }
+    });
+
+    const sql = `insert into answers      (answer, Question_id, person_id)
+                                        VALUES("${params[2]}", "0", "${params[0]}")`;
+
+    let query2 = db.query(sql, userData, (err, result) => {
       if (err) {
         throw err;
         //getRegResponse(err, true);
