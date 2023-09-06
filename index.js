@@ -278,22 +278,25 @@ app.post("/answers", (req, res) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Credentials", true); // you
   res.setHeader("Content-Type", "application/json");
+
   let userData = req.body;
 
-  userData.forEach((element) => {
-    const params = [element.value, element.id, element.userid];
+  console.log(req.body);
 
+ /* userData.forEach((element) => {
+    const params = [element.Answer, element.Questionid, element.Personid];
     query = `
-              SELECT distinct person_id as count FROM answers
-              WHERE person_id = "${params[2]}" and Question_id = "${params[1]}"
+              SELECT distinct count(person_id) as count FROM answers
+              WHERE person_id = "${params[2]}" 
+              and Question_id = "${params[1]}"
               `;
 
     db.query(query, (error, result) => {
       if (error) {
         throw err;
       } else {
-        console.log(result[0]);
-        if (result[0] === undefined) {
+        console.log(result[0].count);
+        if (result[0].count === 0) {
           const sql = `insert into answers      (answer, Question_id, person_id)
                   VALUES("${params[0]}", "${params[1]}", "${params[2]}")`;
 
@@ -317,8 +320,30 @@ app.post("/answers", (req, res) => {
         }
       }
     });
-  });
+  });*/
   getRegResponse(false, "Submitted Successfully");
+});
+
+app.post("/getanswers", (req, res) => {
+  // callback function
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", true); // you
+  res.setHeader("Content-Type", "application/json");
+  let userData = req.body;
+
+  query = `
+              SELECT * FROM answers
+              WHERE person_id = ${userData.personid}
+              `;
+
+  db.query(query, (error, result) => {
+    if ((res.status = 200)) {
+      res.send(result);
+    } else {
+      res.send(error);
+    }
+  });
 });
 
 app.post("/extra", (req, res) => {
@@ -354,6 +379,8 @@ app.post("/extra", (req, res) => {
 
   userData.forEach((element) => {
     const params = [element.personid, element.question, element.answer];
+
+    console.log(element);
 
     const quesSQL = `insert into questions      (Personid, Question, groupNum)
                                         VALUES("${params[0]}", "${params[1]}", "5")`;
