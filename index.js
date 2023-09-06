@@ -250,30 +250,6 @@ app.post("/signin", (request, response) => {
 // call about me
 
 app.post("/answers", (req, res) => {
-  // callback function
-  const getRegResponse = (err, resp) => {
-    let getRes;
-    let status;
-
-    if (err) {
-      getRes = err.message;
-      status = 0;
-    } else {
-      getRes = resp;
-      status = 1;
-    }
-
-    const sendData = {
-      responseMsg: getRes,
-      responseCode: status,
-    };
-
-    res.statusCode = 200;
-
-    res.send(sendData);
-    res.end();
-  };
-
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Credentials", true); // you
@@ -281,9 +257,9 @@ app.post("/answers", (req, res) => {
 
   let userData = req.body;
 
-  console.log(req.body);
+  console.log(userData);
 
- /* userData.forEach((element) => {
+  userData.forEach((element) => {
     const params = [element.Answer, element.Questionid, element.Personid];
     query = `
               SELECT distinct count(person_id) as count FROM answers
@@ -302,8 +278,12 @@ app.post("/answers", (req, res) => {
 
           let query = db.query(sql, userData, (err, result) => {
             if (err) {
-              throw err;
-              //getRegResponse(err, true);
+              res.status(400).json({ message: "Not Submitted", status: 400 });
+            } else {
+              res.status(200).json({
+                message: "Submitted Successfully",
+                status: 200,
+              });
             }
           });
         } else {
@@ -313,15 +293,19 @@ app.post("/answers", (req, res) => {
                        and   person_id = "${params[2]}" `;
           let query = db.query(sql, userData, (err, result) => {
             if (err) {
-              throw err;
-              //getRegResponse(err, true);
+              res.status(400).json({ message: "Not Submitted", status: 400 });
+            } else {
+              res.status(200).json({
+                message: "Submitted Successfully",
+                status: 200,
+              });
             }
           });
         }
       }
     });
-  });*/
-  getRegResponse(false, "Submitted Successfully");
+  });
+  // getRegResponse(false, "Submitted Successfully");
 });
 
 app.post("/getanswers", (req, res) => {
