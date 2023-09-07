@@ -317,12 +317,14 @@ app.post("/getanswers", (req, res) => {
   let userData = req.body;
 
   query = `
-              SELECT * FROM answers
-              WHERE person_id = ${userData.personid}
+              SELECT a.Answer, b.Question, a.Question_id Questionid, a.Person_id Personid 
+              FROM answers a, questions b
+              WHERE person_id = ${userData.Personid}
+              and a.question_id = b.id
               `;
 
   db.query(query, (error, result) => {
-    if ((res.status = 200)) {
+    if ((res.statusCode = 200)) {
       res.send(result);
     } else {
       res.send(error);
@@ -330,31 +332,9 @@ app.post("/getanswers", (req, res) => {
   });
 });
 
-app.post("/extra", (req, res) => {
-  // callback function
-  const getRegResponse = (err, resp) => {
-    let getRes;
-    let status;
+// call answer
 
-    if (err) {
-      getRes = err.message;
-      status = 0;
-    } else {
-      getRes = resp;
-      status = 1;
-    }
-
-    const sendData = {
-      responseMsg: getRes,
-      responseCode: status,
-    };
-
-    res.statusCode = 200;
-
-    res.send(sendData);
-    res.end();
-  };
-
+app.post("/answer", (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Credentials", true); // you
@@ -362,30 +342,101 @@ app.post("/extra", (req, res) => {
   let userData = req.body;
 
   userData.forEach((element) => {
-    const params = [element.personid, element.question, element.answer];
+    // if request questionid is null run this to inset into question and answer tables
+    if (element.Questionid === "") {
+      const quesSQL = `insert into questions      (Personid, Question)
+        VALUES("${element.Personid}", "${element.Question}")`;
 
-    console.log(element);
+      db.query(quesSQL, userData, (err, result) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const sql = `insert into answers      (answer, Question_id, person_id)
+            VALUES("${element.Answer}", "${result.insertId}", "${element.Personid}")`;
 
-    const quesSQL = `insert into questions      (Personid, Question, groupNum)
-                                        VALUES("${params[0]}", "${params[1]}", "5")`;
+          db.query(sql, userData, (err, result) => {
+            if (err) {
+              throw err;
+            } else {
+              return res.statusCode;
+            }
+          });
+        }
+      });
+      // else do this
+    } else {
+      // call main input
+      query = `
+              SELECT distinct count(person_id) as count FROM answers
+              WHERE person_id = "${element.Personid}" 
+              and Question_id = "${element.Questionid}"
+              `;
 
-    let query = db.query(quesSQL, userData, (err, result) => {
-      if (err) {
-        throw err;
-      }
-    });
+      db.query(query, (error, result) => {
+        if (error) {
+          throw err;
+        } else {
+          console.log(result[0].count);
+          if (result[0].count === 0) {
+            const sql = `insert into answers      (answer, Question_id, person_id)
+                  VALUES("${element.Answer}", "${element.Questionid}", "${element.Personid}")`;
 
-    const sql = `insert into answers      (answer, Question_id, person_id)
-                                        VALUES("${params[2]}", "0", "${params[0]}")`;
+            let query = db.query(sql, userData, (err, result) => {
+              if (err) {
+                throw err;
+              } else {
+                return res.statusCode;
+              }
+            });
+          } else {
+            if (element.Questionid > 8) {
+              const questSql = `update questions  
+                  set Question = "${element.Question}"
+                  where id=  "${element.Questionid}"
+                  and   Personid = "${element.Personid}" `;
+              db.query(questSql, userData, (err, result) => {
+                if (err) {
+                  throw err;
+                } else {
+                  return res.statusCode;
+                }
+              });
 
-    let query2 = db.query(sql, userData, (err, result) => {
-      if (err) {
-        throw err;
-        //getRegResponse(err, true);
-      }
-    });
+              const sql = `update answers  
+                  set answer = "${element.Answer}"
+                  where Question_id=  "${element.Questionid}"
+                  and   person_id = "${element.Personid}" `;
+              let query = db.query(sql, userData, (err, result) => {
+                if (err) {
+                  throw err;
+                } else {
+                  return res.statusCode;
+                }
+              });
+            } else {
+              const sql = `update answers  
+                       set answer = "${element.Answer}"
+                       where Question_id=  "${element.Questionid}"
+                       and   person_id = "${element.Personid}" `;
+              let query = db.query(sql, userData, (err, result) => {
+                if (err) {
+                  throw err;
+                } else {
+                  return res.statusCode;
+                }
+              });
+            }
+          }
+        }
+      });
+    }
   });
-  getRegResponse(false, "Submitted Successfully");
+  if (res.statusCode == 200) {
+    res.send({ message: "Submitted Successfully", statusCode: 200 });
+  } else {
+    res.send({ message: "Not Submitted Successfully", statusCode: 400 });
+  }
+  //getRegResponse(false, "Submitted Successfully");
 });
 
 app.listen("3002", () => {
