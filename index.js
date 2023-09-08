@@ -332,6 +332,38 @@ app.post("/getanswers", (req, res) => {
   });
 });
 
+app.post("/deleteanswers", (req, res) => {
+  // callback function
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", true); // you
+  res.setHeader("Content-Type", "application/json");
+  let userData = req.body;
+
+  console.log(userData);
+  const questSql = `delete from questions  
+  where id = "${userData.Questionid}"
+  and   Personid = "${userData.Personid}" `;
+  db.query(questSql, userData, (err, result) => {
+    if (err) {
+      throw err;
+    } else {
+      return res.statusCode;
+    }
+  });
+
+  const sql = `delete from answers  
+  where Question_id = "${userData.Questionid}"
+  and   person_id = "${userData.Personid}" `;
+  let query = db.query(sql, userData, (err, result) => {
+    if (err) {
+      throw err;
+    } else {
+      return res.statusCode;
+    }
+  });
+});
+
 // call answer
 
 app.post("/answer", (req, res) => {
